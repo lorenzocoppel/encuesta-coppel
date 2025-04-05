@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" href="https://www.coppel.com/static/images/favicon.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="https://www.coppel.com/static/images/favicon.ico" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Encuesta Coppel">
+  <meta name="theme-color" content="#2a8c4a">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Encuesta Coppel</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f4f4f4;
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2a8c4a;
+    }
+    .question {
+      margin-top: 1.5rem;
+      font-weight: bold;
+    }
+    .emoji-section {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 1rem;
+    }
+    .emoji-block {
+      text-align: center;
+    }
+    .emoji-btn {
+      font-size: 3rem;
+      padding: 1rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+    .selected {
+      outline: 3px solid #2a8c4a;
+      border-radius: 50%;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      background-color: #2a8c4a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #24753f;
+    }
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Tu opinión es muy importante para nosotros en Coppel</h2>
+    <p>En su correo le estará llegando una breve encuesta para calificar mi servicio. De igual manera le agradecería sus comentarios para mejorar nuestras instalaciones y variedad de productos.</p>
+
+    <div class="question">1. ¿Cómo califica el servicio que recibió?</div>
+    <div class="emoji-section">
+      <div class="emoji-block">
+        <button onclick="selectRating('Buena')" class="emoji-btn" id="btn-buena">😃</button><br/>
+        <small>9-10<br>Buen servicio</small>
+      </div>
+      <div class="emoji-block">
+        <button onclick="selectRating('Mala')" class="emoji-btn" id="btn-mala">😞</button><br/>
+        <small>0-8<br>Mal servicio</small>
+      </div>
+    </div>
+
+    <div class="question">2. ¿Recomendaría esta tienda a sus familiares o amigos?</div>
+    <div class="radio-group">
+      <label><input type="radio" name="recomendacion" value="Sí"> Sí</label>
+      <label><input type="radio" name="recomendacion" value="No"> No</label>
+    </div>
+
+    <div class="question">Comentarios:</div>
+    <textarea id="comentarios" rows="3" placeholder="Escriba sus comentarios aquí..."></textarea>
+
+    <div class="question">Le atendió:</div>
+    <input type="text" id="colaborador" placeholder="Nombre del colaborador" />
+
+    <button onclick="enviarEncuesta()">Enviar mi opinión</button>
+  </div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbxM_aQMdep2f48s8dp4T-Vj8CnHijfxlcF4oE8WdlrFJ4CWClYtgzxUk88_eWxv7KG0/exec";
+    let calificacion = "";
+
+    function selectRating(tipo) {
+      calificacion = tipo;
+      document.getElementById("btn-buena").classList.remove("selected");
+      document.getElementById("btn-mala").classList.remove("selected");
+      if (tipo === "Buena") {
+        document.getElementById("btn-buena").classList.add("selected");
+      } else {
+        document.getElementById("btn-mala").classList.add("selected");
+      }
+    }
+
+    function enviarEncuesta() {
+      const recomendacion = document.querySelector('input[name="recomendacion"]:checked');
+      const comentarios = document.getElementById('comentarios').value.trim();
+      const colaborador = document.getElementById('colaborador').value.trim();
+
+      if (!calificacion || !recomendacion || !colaborador) {
+        alert("Por favor complete toda la encuesta.");
+        return;
+      }
+
+      const data = {
+        calificacion,
+        recomendacion: recomendacion.value,
+        comentarios,
+        colaborador,
+        timestamp: new Date().toISOString()
+      };
+
+      fetch(endpoint, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }).then(() => {
+        alert("¡Gracias por tu opinión!");
+
+        calificacion = "";
+        document.getElementById("btn-buena").classList.remove("selected");
+        document.getElementById("btn-mala").classList.remove("selected");
+        document.querySelectorAll('input[name="recomendacion"]').forEach(el => el.checked = false);
+        document.getElementById('comentarios').value = "";
+        document.getElementById('colaborador').value = "";
+      }).catch(() => {
+        alert("Hubo un error al enviar la encuesta.");
+      });
+    }
+  </script>
+</body>
+</html>
